@@ -68,7 +68,23 @@ export default function App() {
     if(timer.current)clearTimeout(timer.current);
     timer.current=setTimeout(()=>{timer.current=null;const changes=draft.current;draft.current={};save(doc.id,userId,changes,gen);},650);
   };
-  const flush=async()=>{if(timer.current){clearTimeout(timer.current);timer.current=null;const d=selectedRef.current;if(d)const changes=draft.current;draft.current={};save(d.id,userId,changes,generation.current);}await pending.current;};
+  
+const flush = async () => {
+  if (timer.current) {
+    clearTimeout(timer.current);
+    timer.current = null;
+
+    const d = selectedRef.current;
+
+    if (d) {
+      const changes = draft.current;
+      draft.current = {};
+      save(d.id, userId, changes, generation.current);
+    }
+  }
+
+  await pending.current;
+};
   const open=async(id:number)=>{await flush();generation.current++;setSaveState('saved');try{setSelected(await api<Document>(`/documents/${id}`,userId));}catch(e){showError(e);}};
   const close=async()=>{await flush();generation.current++;setSelected(null);await refresh(userId).catch(showError);};
   const create=async()=>{setBusy(true);try{await flush();const doc=await api<Document>('/documents',userId,{method:'POST',body:JSON.stringify({title:'Untitled document'})});await refresh(userId);generation.current++;setSelected(doc);}catch(e){showError(e);}finally{setBusy(false);}};
